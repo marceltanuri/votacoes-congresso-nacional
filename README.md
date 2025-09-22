@@ -11,7 +11,7 @@ Este projeto é uma **SPA simples (páginas estáticas)** que consome a API de [
 ## 📁 Estrutura de Pastas
 
 ```
-pec3-votacao/
+votacoes-congresso-nacional/
 ├── index.html       # Página inicial (busca de proposições)
 ├── home.js          # Lógica da busca e listagem de votações
 ├── votacao.html     # Página de votos nominais (filtros)
