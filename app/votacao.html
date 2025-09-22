@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Votos nominais — Câmara</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Votos nominais <small id="votacaoId" class="muted"></small></h1>
+      <div class="sub">
+        Fonte: <a id="apiLink" href="#" target="_blank" rel="noopener">API Dados Abertos da Câmara</a> ·
+        <a href="home.html">Voltar à Home</a>
+      </div>
+      <div class="filters">
+        <div class="w3">
+          <label for="fPartido">Partido</label>
+          <select id="fPartido"><option value="">Todos</option></select>
+        </div>
+        <div class="w3">
+          <label for="fUF">UF</label>
+          <select id="fUF"><option value="">Todas</option></select>
+        </div>
+        <div class="w3">
+          <label for="fVoto">Voto</label>
+          <select id="fVoto">
+            <option value="">Todos</option>
+            <option>Sim</option>
+            <option>Não</option>
+            <option>Abstenção</option>
+            <option>Obstrução</option>
+            <option>Art. 17</option>
+          </select>
+        </div>
+        <div class="w6">
+          <label for="fNome">Nome do deputado</label>
+          <input id="fNome" type="text" placeholder="Digite parte do nome…" />
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btnLimpar">Limpar filtros</button>
+        <button id="btnCSV" class="primary">Exportar CSV</button>
+      </div>
+      <div id="status" class="status loading">Carregando votos…</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="meta" id="resumo"></div>
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th data-k="nome">Deputado(a)</th>
+            <th data-k="siglaPartido">Partido</th>
+            <th data-k="siglaUf">UF</th>
+            <th data-k="tipoVoto">Voto</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="votacao.js"></script>
+</body>
+</html>

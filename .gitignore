@@ -1,0 +1,10 @@
+# Dependencies
+/node_modules
+
+# IDEs
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db

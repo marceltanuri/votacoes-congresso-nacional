@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Câmara — Proposições e Votações</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Busca de Proposições</h1>
+      <div class="sub">Filtre por <strong>tipo</strong>, <strong>número</strong> e <strong>ano</strong>. Em seguida, abra as <em>votações</em> e visualize os votos nominais.</div>
+      <form id="formBusca" class="filters" autocomplete="off">
+        <div class="w3">
+          <label for="tipo">Tipo</label>
+          <select id="tipo" required>
+            <option value="PEC">PEC</option>
+            <option value="PL">PL</option>
+            <option value="PLP">PLP</option>
+            <option value="PLN">PLN</option>
+            <option value="MPV">MPV</option>
+            <option value="PDC">PDC</option>
+            <option value="PDL">PDL</option>
+          </select>
+        </div>
+        <div class="w3">
+          <label for="numero">Número</label>
+          <input id="numero" type="number" min="1" required placeholder="Ex.: 3" />
+        </div>
+        <div class="w3">
+          <label for="ano">Ano</label>
+          <input id="ano" type="number" min="1988"  required placeholder="Ex.: 2021" />
+        </div>
+        <div class="w3 actions">
+          <button class="primary" type="submit">Buscar</button>
+          <button id="btnLimpar" type="button">Limpar</button>
+        </div>
+      </form>
+
+      <nav class="popular card">
+        <h2 class="h2">Votações mais acessadas</h2>
+        <ul class="links">
+          <!-- Exemplo fixo solicitado: inclui a votação atual -->
+          <li>
+            <a href="votacao.html?v=2270800-160">PEC 3/2021 — 2º turno (ID: 2270800-160)</a>
+            <span class="muted">· Sim: 344; Não: 133 (total 477)</span>
+          </li>
+        </ul>
+      </nav>
+
+      <div id="status" class="status"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2 class="h2">Resultados</h2>
+      <div id="resultados" class="resultados"></div>
+    </section>
+  </main>
+
+  <script src="home.js"></script>
+</body>
+</html>
