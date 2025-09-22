@@ -65,10 +65,10 @@
     }
   }
 
-  function toISODate(d) { return d.toISOString().slice(0,10); }
+  function toISODate(d) { return d.toISOString().slice(0, 10); }
 
   // Carrega eventos com participação do deputado em uma janela de dias
-  async function listarEventosDoDeputado(depId, { dias=60, pagina=1, itens=100, soPlenario=false } = {}) {
+  async function listarEventosDoDeputado(depId, { dias = 60, pagina = 1, itens = 100, soPlenario = false } = {}) {
     const fim = new Date();
     const ini = new Date(fim); ini.setDate(fim.getDate() - dias);
     let url = `${API}/deputados/${depId}/eventos?dataInicio=${toISODate(ini)}&dataFim=${toISODate(fim)}&ordem=desc&ordenarPor=dataHoraInicio&pagina=${pagina}&itens=${itens}`;
@@ -80,9 +80,11 @@
 
   // A partir do evento, carrega suas votações
   async function listarVotacoesDoEvento(eventoId) {
-    const data = await getJSON(`${API}/eventos/${encodeURIComponent(eventoId)}/votacoes?itens=100`);
+    const url = `${API}/eventos/${encodeURIComponent(eventoId)}/votacoes`;
+    const data = await getJSON(url);
     return data.dados || [];
   }
+
 
   // Dentro de uma votação, procura o voto do deputado
   async function buscarVotoDoDeputadoNaVotacao(votacaoId, depId) {
@@ -91,7 +93,7 @@
   }
 
   // Orquestra: Deputado → Eventos → Votações → Voto do dep.
-  async function votosRecentesViaEventos(depId, limite=50, janelaDias=60, soPlenario=false) {
+  async function votosRecentesViaEventos(depId, limite = 50, janelaDias = 60, soPlenario = false) {
     const resultados = [];
     let pagina = 1;
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -120,7 +122,7 @@
                 tipoVoto: votoDoDep.tipoVoto
               });
             }
-          } catch {}
+          } catch { }
           await sleep(110); // backoff leve para a API pública
         }
       }
