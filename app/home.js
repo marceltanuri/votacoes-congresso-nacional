@@ -2,31 +2,31 @@ const $ = (s) => document.querySelector(s);
 
 document.getElementById('ano').max = new Date().getFullYear();
 
-function setStatus(msg, loading=false){
+function setStatus(msg, loading = false) {
   const el = $('#status');
   el.textContent = msg || '';
   el.classList.toggle('loading', !!loading);
 }
 
-async function fetchJson(url){
-  const r = await fetch(url, { headers: { 'Accept': 'application/json' }});
-  if(!r.ok) throw new Error('Erro '+r.status+' em '+url);
+async function fetchJson(url) {
+  const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!r.ok) throw new Error('Erro ' + r.status + ' em ' + url);
   return r.json();
 }
 
-async function buscarProposicoes(siglaTipo, numero, ano){
+async function buscarProposicoes(siglaTipo, numero, ano) {
   const url = `${API_BASE}/proposicoes?siglaTipo=${encodeURIComponent(siglaTipo)}&numero=${encodeURIComponent(numero)}&ano=${encodeURIComponent(ano)}`;
   const j = await fetchJson(url);
   return j.dados || [];
 }
 
-async function listarVotacoes(proposicaoId){
+async function listarVotacoes(proposicaoId) {
   const url = `${API_BASE}/proposicoes/${proposicaoId}/votacoes`;
   const j = await fetchJson(url);
   return j.dados || [];
 }
 
-function cardProposicao(p){
+function cardProposicao(p) {
   const div = document.createElement('div');
   div.className = 'proposicao card';
   div.innerHTML = `
@@ -38,8 +38,8 @@ function cardProposicao(p){
   return div;
 }
 
-function listVotacoes(divVotacoes, votacoes, proposicao){
-  if(!votacoes.length){
+function listVotacoes(divVotacoes, votacoes) {
+  if (!votacoes.length) {
     divVotacoes.innerHTML = '<div class="muted">Nenhuma votação encontrada.</div>';
     return;
   }
@@ -48,7 +48,8 @@ function listVotacoes(divVotacoes, votacoes, proposicao){
   votacoes.forEach(v => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = `votacao.html?v=${encodeURIComponent(v.id)}&p=${proposicao.id}`;
+    const proposicaoId = v.id.split("-")[0];
+    a.href = `votacao.html?v=${encodeURIComponent(v.id)}&p=${encodeURIComponent(proposicaoId)}`;
     a.textContent = `${v.data} — ${v.descricao || 'Votação'}`;
     li.appendChild(a);
     ul.appendChild(li);
@@ -56,7 +57,7 @@ function listVotacoes(divVotacoes, votacoes, proposicao){
   divVotacoes.replaceChildren(ul);
 }
 
-$('#formBusca').addEventListener('submit', async (ev)=>{
+$('#formBusca').addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const tipo = $('#tipo').value.trim();
   const numero = $('#numero').value.trim();
@@ -64,33 +65,36 @@ $('#formBusca').addEventListener('submit', async (ev)=>{
   const cont = $('#resultados');
   cont.innerHTML = '';
   setStatus('Buscando proposições…', true);
-  try{
+  try {
     const props = await buscarProposicoes(tipo, numero, ano);
-    if(!props.length){
+    if (!props.length) {
       cont.innerHTML = '<div class="muted">Nenhuma proposição encontrada.</div>';
     } else {
       props.forEach(p => cont.appendChild(cardProposicao(p)));
       // Bind de botões "Ver votações"
       cont.querySelectorAll('.btnVotacoes').forEach(btn => {
-        btn.addEventListener('click', async ()=>{
+        btn.addEventListener('click', async () => {
           const id = btn.dataset.id;
           const box = btn.closest('.proposicao').querySelector('.votacoes');
           box.innerHTML = '<div class="muted">Carregando votações…</div>';
-          try{
+          try {
             const vs = await listarVotacoes(id);
-            listVotacoes(box, vs, p);
-          }catch(e){ box.innerHTML = '<div class="muted">Erro ao listar votações.</div>'; }
+            listVotacoes(box, vs);
+          } catch (e) { 
+            box.innerHTML = '<div class="muted">Erro ao listar votações.</div>'; 
+            console.error(e)
+          }
         });
       });
     }
     setStatus('');
-  }catch(e){
+  } catch (e) {
     console.error(e);
-    setStatus('Falha na busca: '+e.message);
+    setStatus('Falha na busca: ' + e.message);
   }
 });
 
-$('#btnLimpar').addEventListener('click', ()=>{
+$('#btnLimpar').addEventListener('click', () => {
   $('#numero').value = '';
   $('#ano').value = '';
   $('#resultados').innerHTML = '';
