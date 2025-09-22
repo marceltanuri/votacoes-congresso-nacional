@@ -93,7 +93,7 @@ async function init() {
             <p><strong>Nome Civil:</strong> ${deputado.nomeCivil}</p>
             <p><strong>Partido:</strong> ${deputado.ultimoStatus.siglaPartido}</p>
             <p><strong>UF:</strong> ${deputado.ultimoStatus.siglaUf}</p>
-            <p><strong>Email:</strong> <a href="mailto:${deputado.gabinete.email}">${deputado.gabinete.email}</a></p>
+            <p><strong>Email:</strong> <a href="mailto:${deputado.ultimoStatus.gabinete.email}">${deputado.ultimoStatus.gabinete.email}</a></p>
             <img src="${deputado.ultimoStatus.urlFoto}" alt="Foto de ${deputado.nomeCivil}" width="150">
         `;
         $('#detalhesDeputado').innerHTML = detalhesHtml;
