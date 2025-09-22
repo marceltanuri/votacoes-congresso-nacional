@@ -1,166 +1,110 @@
-// deputado.js — via /deputados/{id}/eventos → /eventos/{id}/votacoes → /votacoes/{id}/votos
-(function () {
-  const qs = new URLSearchParams(location.search);
-  const id = Number(qs.get("id"));
-  if (!id) {
-    const s = document.getElementById("status");
-    s.textContent = "ID do deputado ausente na URL (?id=).";
-    s.classList.remove("loading");
-    return;
-  }
+const $ = (s) => document.querySelector(s);
 
-  const API = "https://dadosabertos.camara.leg.br/api/v2";
+const url = new URL(location.href);
+const DEPUTADO_ID = url.searchParams.get('id');
 
-  async function getJSON(url) {
-    const r = await fetch(url, { headers: { Accept: "application/json" } });
-    if (!r.ok) throw new Error(`HTTP ${r.status} em ${url}`);
-    return r.json();
-  }
+function setStatus(msg, loading = false) {
+    const el = $('#status');
+    el.textContent = msg || '';
+    el.classList.toggle('loading', !!loading);
+}
 
-  function fmtDataHora(iso) {
+async function fetchAllPages(url) {
+    const all = [];
+    let next = url;
+    let safety = 0;
+    while (next && safety++ < 50) {
+        const r = await fetch(next, { headers: { 'Accept': 'application/json' } });
+        if (!r.ok) throw new Error('Erro ' + r.status);
+        const j = await r.json();
+        all.push(...(j.dados || []));
+        next = (j.links || []).find(l => l.rel === 'next')?.href || null;
+    }
+    return all;
+}
+
+function escapeCsv(s) {
+    if (s === null || s === undefined) return '';
+    let str = String(s);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        str = `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+}
+
+async function exportarEventos() {
+    if (!DEPUTADO_ID) return;
+    setStatus('Exportando eventos para CSV…', true);
     try {
-      const d = new Date(iso);
-      return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-    } catch {
-      return iso || "";
-    }
-  }
+        const eventosApiUrl = `${API_BASE}/deputados/${DEPUTADO_ID}/eventos?ordem=DESC&ordenarPor=dataHoraInicio`;
+        const eventos = await fetchAllPages(eventosApiUrl);
 
-  function setDepHeader(dep) {
-    document.title = `${dep.nome} — Perfil e Votações`;
-    document.getElementById("depNome").textContent = dep.nome;
-    const ult = dep.ultimoStatus || {};
-    const partido = ult.siglaPartido || dep.siglaPartido || "";
-    const uf = ult.siglaUf || dep.siglaUf || "";
-    document.getElementById("depPartidoUF").textContent = `${partido}/${uf}`.replace(/^\/$|^\/|\/$/g, "");
-    document.getElementById("depLegislatura").textContent = ult.idLegislatura ?? "";
-    document.getElementById("depSituacao").textContent = ult.situacao || "";
-    document.getElementById("depEmail").textContent = ult.email || "—";
-    const a = document.getElementById("depSite");
-    const site = dep.urlWebsite || (Array.isArray(dep.redeSocial) ? dep.redeSocial[0] : dep.redeSocial) || "";
-    if (site) { a.href = site; a.textContent = "Abrir"; } else { a.removeAttribute("href"); a.textContent = "—"; }
-    document.getElementById("apiLink").href = `${API}/deputados/${id}`;
-  }
-
-  function renderVotos(votos) {
-    const tbody = document.getElementById("tbodyVotos");
-    tbody.innerHTML = "";
-    for (const v of votos) {
-      const tr = document.createElement("tr");
-      const tdData = document.createElement("td");
-      const tdDesc = document.createElement("td");
-      const tdVoto = document.createElement("td");
-
-      tdData.textContent = fmtDataHora(v.dataHoraRegistro || v.data || "");
-      const a = document.createElement("a");
-      a.href = `votacao.html?v=${encodeURIComponent(v.idVotacao)}`;
-      a.textContent = v.descricao || `Votação ${v.idVotacao}`;
-      tdDesc.appendChild(a);
-      tdVoto.textContent = v.tipoVoto || v.voto || "—";
-
-      tr.appendChild(tdData);
-      tr.appendChild(tdDesc);
-      tr.appendChild(tdVoto);
-      tbody.appendChild(tr);
-    }
-  }
-
-  function toISODate(d) { return d.toISOString().slice(0, 10); }
-
-  // Carrega eventos com participação do deputado em uma janela de dias
-  async function listarEventosDoDeputado(depId, { dias = 60, pagina = 1, itens = 100, soPlenario = false } = {}) {
-    const fim = new Date();
-    const ini = new Date(fim); ini.setDate(fim.getDate() - dias);
-    let url = `${API}/deputados/${depId}/eventos?dataInicio=${toISODate(ini)}&dataFim=${toISODate(fim)}&ordem=desc&ordenarPor=dataHoraInicio&pagina=${pagina}&itens=${itens}`;
-    const data = await getJSON(url);
-    let eventos = data.dados || [];
-    if (soPlenario) eventos = eventos.filter(ev => ev.orgao?.sigla === "PLEN" || ev.orgao?.id === 180);
-    return { eventos, links: data.links || [] };
-  }
-
-  // A partir do evento, carrega suas votações
-  async function listarVotacoesDoEvento(eventoId) {
-    const url = `${API}/eventos/${encodeURIComponent(eventoId)}/votacoes`;
-    const data = await getJSON(url);
-    return data.dados || [];
-  }
-
-
-  // Dentro de uma votação, procura o voto do deputado
-  async function buscarVotoDoDeputadoNaVotacao(votacaoId, depId) {
-    const votosResp = await getJSON(`${API}/votacoes/${encodeURIComponent(votacaoId)}/votos?itens=500`);
-    return (votosResp.dados || []).find(x => x.deputado_?.id === depId) || null;
-  }
-
-  // Orquestra: Deputado → Eventos → Votações → Voto do dep.
-  async function votosRecentesViaEventos(depId, limite = 50, janelaDias = 60, soPlenario = false) {
-    const resultados = [];
-    let pagina = 1;
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-    while (resultados.length < limite) {
-      const { eventos, links } = await listarEventosDoDeputado(depId, { dias: janelaDias, pagina, itens: 100, soPlenario });
-      if (!eventos.length) break;
-
-      for (const ev of eventos) {
-        if (resultados.length >= limite) break;
-
-        let votacoes;
-        try {
-          votacoes = await listarVotacoesDoEvento(ev.id);
-        } catch { continue; }
-
-        for (const v of votacoes) {
-          if (resultados.length >= limite) break;
-          try {
-            const votoDoDep = await buscarVotoDoDeputadoNaVotacao(v.id, depId);
-            if (votoDoDep) {
-              resultados.push({
-                idVotacao: v.id,
-                descricao: v.descricao,
-                dataHoraRegistro: votoDoDep.dataHoraRegistro || v.data || ev.dataHoraInicio,
-                tipoVoto: votoDoDep.tipoVoto
-              });
-            }
-          } catch { }
-          await sleep(110); // backoff leve para a API pública
+        if (!eventos.length) {
+            setStatus('Nenhum evento encontrado para este deputado.');
+            return;
         }
-      }
 
-      const temNext = (links || []).some(l => l.rel === "next");
-      if (!temNext) break;
-      pagina++;
+        const headers = ['ID Evento', 'Data/Hora Início', 'Data/Hora Fim', 'Situação', 'Descrição Tipo', 'Local'];
+        const rows = eventos.map(e => [
+            e.id,
+            e.dataHoraInicio,
+            e.dataHoraFim,
+            e.situacao,
+            e.descricaoTipo,
+            e.localCamara?.nome || 'Externo'
+        ].map(escapeCsv).join(','));
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `eventos_deputado_${DEPUTADO_ID}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setStatus('Eventos exportados com sucesso.');
+    } catch (error) {
+        console.error(error);
+        setStatus(`Falha ao exportar eventos: ${error.message}`);
+    }
+}
+
+
+async function init() {
+    if (!DEPUTADO_ID) {
+        $('#nomeDeputado').textContent = 'ID do deputado não fornecido';
+        return;
     }
 
-    // Fallback: amplia janela se muito poucos resultados
-    if (resultados.length < Math.min(10, limite) && janelaDias < 180) {
-      return votosRecentesViaEventos(depId, limite, 180, soPlenario);
-    }
-
-    return resultados.slice(0, limite);
-  }
-
-  async function init() {
-    const s = document.getElementById("status");
+    setStatus('Carregando perfil do deputado…', true);
     try {
-      const depResp = await getJSON(`${API}/deputados/${id}`);
-      const dep = depResp.dados;
-      setDepHeader(dep);
+        const deputadoApiUrl = `${API_BASE}/deputados/${DEPUTADO_ID}`;
+        const response = await fetch(deputadoApiUrl, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error(`Erro ${response.status}`);
 
-      s.textContent = "Coletando votações recentes a partir de eventos…";
-      // Ajuste 'soPlenario' para true se quiser só eventos do Plenário
-      const votos = await votosRecentesViaEventos(id, 50, 60, /*soPlenario=*/false);
-      renderVotos(votos);
+        const json = await response.json();
+        const deputado = json.dados;
 
-      s.classList.remove("loading");
-      s.textContent = `${votos.length} votação(ões) encontradas.`;
-    } catch (e) {
-      console.error(e);
-      s.classList.remove("loading");
-      s.classList.add("error");
-      s.textContent = "Não foi possível carregar os dados do deputado.";
+        $('#nomeDeputado').textContent = deputado.nomeCivil;
+        document.title = `${deputado.nomeCivil} — Perfil do Deputado`;
+
+        const detalhesHtml = `
+            <p><strong>Nome Civil:</strong> ${deputado.nomeCivil}</p>
+            <p><strong>Partido:</strong> ${deputado.ultimoStatus.siglaPartido}</p>
+            <p><strong>UF:</strong> ${deputado.ultimoStatus.siglaUf}</p>
+            <p><strong>Email:</strong> <a href="mailto:${deputado.ultimoStatus.email}">${deputado.ultimoStatus.email}</a></p>
+            <img src="${deputado.ultimoStatus.urlFoto}" alt="Foto de ${deputado.nomeCivil}" width="150">
+        `;
+        $('#detalhesDeputado').innerHTML = detalhesHtml;
+
+        $('#btnExportarEventos').addEventListener('click', exportarEventos);
+
+        setStatus('Perfil carregado.');
+    } catch (error) {
+        console.error(error);
+        setStatus(`Falha ao carregar perfil: ${error.message}`);
     }
-  }
+}
 
-  init();
-})();
+init();
