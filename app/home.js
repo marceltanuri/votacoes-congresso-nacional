@@ -39,7 +39,7 @@ function cardProposicao(p){
   return div;
 }
 
-function listVotacoes(divVotacoes, votacoes){
+function listVotacoes(divVotacoes, votacoes, proposicao){
   if(!votacoes.length){
     divVotacoes.innerHTML = '<div class="muted">Nenhuma votação encontrada.</div>';
     return;
@@ -49,7 +49,7 @@ function listVotacoes(divVotacoes, votacoes){
   votacoes.forEach(v => {
     const li = document.createElement('li');
     const a = document.createElement('a');
-    a.href = `votacao.html?v=${encodeURIComponent(v.id)}`;
+    a.href = `votacao.html?v=${encodeURIComponent(v.id)}&p=${proposicao.id}`;
     a.textContent = `${v.data} — ${v.descricao || 'Votação'}`;
     li.appendChild(a);
     ul.appendChild(li);
@@ -79,7 +79,7 @@ $('#formBusca').addEventListener('submit', async (ev)=>{
           box.innerHTML = '<div class="muted">Carregando votações…</div>';
           try{
             const vs = await listarVotacoes(id);
-            listVotacoes(box, vs);
+            listVotacoes(box, vs, p);
           }catch(e){ box.innerHTML = '<div class="muted">Erro ao listar votações.</div>'; }
         });
       });

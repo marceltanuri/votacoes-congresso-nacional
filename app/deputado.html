@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deputado — Perfil e Votações Recentes</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1 id="depNome">Deputado(a)</h1>
+      <div class="sub">
+        <span id="depPartidoUF"></span> ·
+        <a href="home.html">Voltar à Home</a>
+      </div>
+
+      <div class="card" id="depCard">
+        <div class="meta">
+          <div><strong>Legislatura:</strong> <span id="depLegislatura"></span></div>
+          <div><strong>Situação:</strong> <span id="depSituacao"></span></div>
+          <div><strong>Email:</strong> <span id="depEmail"></span></div>
+          <div><strong>Site:</strong> <a id="depSite" href="#" target="_blank" rel="noopener">Abrir</a></div>
+        </div>
+      </div>
+
+      <div class="sub">
+        Fonte: <a id="apiLink" href="#" target="_blank" rel="noopener">API Dados Abertos da Câmara</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2 class="h2">Votações recentes</h2>
+      <div id="status" class="status loading">Carregando votações…</div>
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>Data/Hora</th>
+            <th>Descrição</th>
+            <th>Voto</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyVotos"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="deputado.js"></script>
+</body>
+</html>

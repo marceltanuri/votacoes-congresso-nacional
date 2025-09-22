@@ -9,7 +9,24 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>Votos nominais <small id="votacaoId" class="muted"></small></h1>
+      <details>
+        <summary>
+          <h1 id="proposicaoTitulo" style="display: inline; font-size: 1.5rem; vertical-align: middle;"></h1> 
+          <span class="muted" style="vertical-align: middle;"> (clique para ver detalhes)</span>
+        </summary>
+
+        <div id="proposicaoEmenta" class="sub" style="margin-top: 1rem; margin-bottom: 1.5rem;"></div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h2 id="votacaoDescricao" style="margin-top: 0;"></h2>
+          <div class="meta">
+            <strong>Data da Votação:</strong> <span id="votacaoData"></span><br>
+            <strong>Registro:</strong> <span id="votacaoDataHoraRegistro"></span><br>
+            <strong>Órgão:</strong> <span id="votacaoOrgao"></span>
+          </div>
+        </div>
+      </details>
+
       <div class="sub">
         Fonte: <a id="apiLink" href="#" target="_blank" rel="noopener">API Dados Abertos da Câmara</a> ·
         <a href="home.html">Voltar à Home</a>
@@ -41,7 +58,7 @@
       </div>
       <div class="actions">
         <button id="btnLimpar">Limpar filtros</button>
-        <button id="btnCSV" class="primary">Exportar CSV</button>
+        <button id="btnCSV">Exportar CSV</button>
       </div>
       <div id="status" class="status loading">Carregando votos…</div>
     </div>
