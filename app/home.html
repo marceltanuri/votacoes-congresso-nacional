@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Câmara — Proposições e Votações</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header>
     <div class="wrap">
       <h1>Busca de Proposições</h1>
-      <div class="sub">Filtre por <strong>tipo</strong>, <strong>número</strong> e <strong>ano</strong>. Em seguida, abra as <em>votações</em> e visualize os votos nominais.</div>
+      <div class="sub">Filtre por <strong>tipo</strong>, <strong>número</strong> e <strong>ano</strong>. Em seguida,
+        abra as <em>votações</em> e visualize os votos nominais.</div>
       <form id="formBusca" class="filters" autocomplete="off">
         <div class="w3">
           <label for="tipo">Tipo</label>
@@ -30,7 +33,7 @@
         </div>
         <div class="w3">
           <label for="ano">Ano</label>
-          <input id="ano" type="number" min="1988"  required placeholder="Ex.: 2021" />
+          <input id="ano" type="number" min="1988" required placeholder="Ex.: 2021" />
         </div>
         <div class="w3 actions">
           <button class="primary" type="submit">Buscar</button>
@@ -60,6 +63,8 @@
     </section>
   </main>
 
+  <script src="config.js"></script>
   <script src="home.js"></script>
 </body>
+
 </html>

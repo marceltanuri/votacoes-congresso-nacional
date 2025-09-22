@@ -1,6 +1,5 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
-const API_BASE = 'https://dadosabertos.camara.leg.br/api/v2';
 
 // Lê ?v=ID da votação e ?p=ID da proposição na URL
 const url = new URL(location.href);

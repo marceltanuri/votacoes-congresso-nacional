@@ -1,5 +1,4 @@
 const $ = (s) => document.querySelector(s);
-const API_BASE = 'https://dadosabertos.camara.leg.br/api/v2';
 
 document.getElementById('ano').max = new Date().getFullYear();
 
